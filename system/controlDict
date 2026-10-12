@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -15,7 +15,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     simpleFoam;
+application     foamRun;
+
+solver          incompressibleFluid;
 
 startFrom       startTime;
 
@@ -23,27 +25,47 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         5000;              // 1000 iterações costumam ser suficientes
+endTime         1000;
 
-deltaT          1;                 // Em solvers estacionários, deltaT representa iterações
+deltaT          1;
 
 writeControl    timeStep;
 
-writeInterval   50;                // Salvar a cada 50 iterações
+writeInterval   50;
+
+runTimeModifiable true;
 
 functions
 {
-    #includeFunc forces
-}
-
-fvModels
-{
-    MRF1
+    forces
     {
-        type            MRFSource;
-        active          true;
-        selectionMode   cellZone;
-        cellZone        innerCylinder;
+        type            forces;
+        libs            ("libforces.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        patches         (propellerTip);
+        rho             rhoInf;
+        rhoInf          1.225;          // Densidade do ar (kg/m3)
+        CofR            (0 -0.00800165 0); // Centro de rotacao do rotor
+    }
+
+    forceCoeffs
+    {
+        type            forceCoeffs;
+        libs            ("libforces.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        patches         (propellerTip);
+        rho             rhoInf;
+        rhoInf          1.225;
+        CofR            (0 -0.00800165 0);
+        liftDir         (0 1 0);        // Direcao do empuxo / sustentacao (+Y)
+        dragDir         (0 -1 0);       // Direcao do arrasto / escoamento a jusante (-Y)
+        pitchAxis       (1 0 0);        // Eixo de arfagem perpendicular (+X)
+        magUInf         10.0;           // Velocidade de referencia estimada (m/s)
+        lRef            1.0164;         // Diametro da helice (m)
+        Aref            0.8114;         // Area de disco da helice pi*(D/2)^2 (m2)
     }
 }
+
 // ************************************************************************* //

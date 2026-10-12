@@ -1,31 +1,17 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       dictionary;
-    location    "system";
-    object      forces;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-writeControl    timeStep;
-
-writeInterval   1;
-
 type            forces;
 libs            ("libforces.so");
-patches 	("propellerTip");
+writeControl    timeStep;
+writeInterval   1;
+patches         (propellerTip);
 rho             rhoInf;
-rhoInf          1.225;          // Densidade do ar (kg/m³)
-CofR            (0 -0.00800165 0);        // Centro de rotação
-p               p;              // Nome do campo de pressão
-U               U;              // Nome do campo de velocidade
+rhoInf          1.225;
+CofR            (0 -0.00800165 0);
 
 // ************************************************************************* //

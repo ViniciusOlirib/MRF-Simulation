@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -25,7 +25,7 @@ boundaryField
 
     inlet
     {
-        type            inletOutlet; // Mudado de fixedValue para estabilidade de sucção
+        type            inletOutlet;
         inletValue      $internalField;
         value           $internalField;
     }
@@ -39,15 +39,14 @@ boundaryField
 
     walls
     {
-        type            zeroGradient; // CORRIGIDO: Removido fixedValue de parede sem lei de parede
+        type            zeroGradient;
     }
 
     propellerTip
     {
-        type            epsilonWallFunction; // Perfeito, mantenha assim
+        type            epsilonWallFunction;
         value           $internalField;
     }
 }
-
 
 // ************************************************************************* //

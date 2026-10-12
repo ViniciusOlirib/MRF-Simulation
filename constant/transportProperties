@@ -1,9 +1,9 @@
 /*--------------------------------*- C++ -*----------------------------------*\
-| =========                                                                |
+| =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                              |
-|   \\  /    A nd           | Website:  www.openfoam.com                       |
-|    \\/     M anipulation  |                                                  |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
+|    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -17,6 +17,6 @@ FoamFile
 
 viscosityModel  constant;
 
-nu              1.5e-05; // Viscosidade cinemática do ar em m²/s
+nu              [0 2 -1 0 0 0 0] 1.5e-05; // Viscosidade cinematica do ar em m2/s
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ************************************************************************* //

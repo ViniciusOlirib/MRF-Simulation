@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -13,6 +13,7 @@ FoamFile
     location    "system";
     object      topoSetDict;
 }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 actions
 (
@@ -23,9 +24,9 @@ actions
         source  cylinderToCell;
         sourceInfo
         {
-            p1      (0 -0.2 0); // Ponto inferior do cilindro no eixo Y
-            p2      (0  0.2 0); // Ponto superior do cilindro no eixo Y
-            radius  0.6;        // Raio de 60cm (cobre com folga a hélice de ~50cm)
+            p1      (0 -0.10 0); // Ponto inferior no eixo Y (dentro da refinementBox)
+            p2      (0  0.08 0); // Ponto superior no eixo Y (dentro da refinementBox)
+            radius  0.55;        // Raio de 55cm (envolve a helice de R=50.8cm com 42mm de folga)
         }
     }
     {
@@ -39,4 +40,5 @@ actions
         }
     }
 );
+
 // ************************************************************************* //

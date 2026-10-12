@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -34,18 +34,18 @@ boundaryField
         type            calculated;
         value           uniform 0;
     }
-	
+
     walls
     {
-        type            zeroGradient; // CORRIGIDO: Alinhado com o comportamento slip/zeroGradient do domínio
+        type            calculated;
+        value           uniform 0;
     }
 
     propellerTip
     {
-        type            nutkWallFunction; // Perfeito! Essencial para o MRF com k-epsilon
+        type            nutkWallFunction;
         value           uniform 0;
     }
 }
-
 
 // ************************************************************************* //

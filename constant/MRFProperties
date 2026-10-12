@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -17,11 +17,17 @@ FoamFile
 
 MRF1
 {
-    cellZone        innerCylinder; // Nome da zona rotativa criada na malha
-    active          true;
-    origin          (0 -0.00800165 0);   // Centro de rotação
-    axis            (0 1 0);   // Eixo de rotação alinhado ao túnel
-    omega           363.69;    // 3.473 RPM em rad/s
+    cellZone            innerCylinder;
+    active              yes;
+
+    // Patches que pertencem a cellZone mas nao devem rotacionar (opcional/vazio)
+    nonRotatingPatches  ();
+
+    origin              (0 -0.00800165 0); // Centro de rotacao (plano medio do rotor em Y)
+    axis                (0 1 0);           // Eixo de rotacao alinhado ao tunel/dominio (+Y)
+
+    // Velocidade angular em rad/s (3473 RPM) via classe Function1
+    omega               constant 363.69;
 }
 
 // ************************************************************************* //

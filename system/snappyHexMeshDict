@@ -65,6 +65,10 @@ castellatedMeshControls
         {
             // Permite que regiões de curvatura subam até o nível 8 para dar pontos suficientes ao snap
             level       (7 8);
+            patchInfo
+            {
+                type    wall;
+            }
         }
     }
 
