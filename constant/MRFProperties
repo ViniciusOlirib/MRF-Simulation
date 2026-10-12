@@ -9,41 +9,19 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      p;
+    class       dictionary;
+    location    "constant";
+    object      MRFProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -2 0 0 0 0];
-
-internalField   uniform 0;
-
-boundaryField
+MRF1
 {
-    #includeEtc "caseDicts/setConstraintTypes"
-
-    inlet
-    {
-        type            zeroGradient;
-    }
-
-    outlet
-    {
-        type            fixedValue;
-        value           uniform 0;
-    }
-	
-	walls
-	{
-		type			zeroGradient;
-	}
-	
-    propellerTip
-    {
-        type            zeroGradient;
-    }
+    cellZone        innerCylinder; // Nome da zona rotativa criada na malha
+    active          true;
+    origin          (0 -0.00800165 0);   // Centro de rotação
+    axis            (0 1 0);   // Eixo de rotação alinhado ao túnel
+    omega           363.69;    // 3.473 RPM em rad/s
 }
-
 
 // ************************************************************************* //

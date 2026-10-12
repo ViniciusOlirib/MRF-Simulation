@@ -10,7 +10,7 @@ AMIWeights1
 {
     // Mandatory entries
     type             AMIWeights;
-    libs             (fieldFunctionObjects);
+    libs             ("fieldFunctionObjects");
     writeFields     true;
 
     // Optional (inherited) entries

@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2012                                 |
-|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -10,23 +10,15 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      dynamicMeshDict;
+    object      surfaceFeaturesDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dynamicFvMesh   dynamicMotionSolverFvMesh;
-
-motionSolverLibs (fvMotionSolvers);
-
-motionSolver    solidBody;
-
-cellZone        innerCylinderSmall;
-
-solidBodyMotionFunction  rotatingMotion;
-
-origin      (0 0 0);
-axis        (0 1 0);
-omega       120; // rad/s
+propellerTip.obj
+{
+    surfaces            ("propellerTip.obj");
+    extractionMethod    extractFromSurface;
+    includedAngle       179;
+}
 
 // ************************************************************************* //

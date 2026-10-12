@@ -9,45 +9,34 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      k;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-dimensions      [0 2 -2 0 0 0 0];
-
-internalField   uniform 0.08;
-
-boundaryField
-{
-    #includeEtc "caseDicts/setConstraintTypes"
-
-    inlet
-    {
-        type            fixedValue;
-        value           $internalField;
-    }
-
-    outlet
-    {
-        type            inletOutlet;
-        inletValue      $internalField;
-        value           $internalField;
-    }
-
-	walls
-	{
-		type            fixedValue;
-        value           $internalField;
-	}
-
-    propellerTip
-    {
-        type            kqRWallFunction;
-        value           $internalField;
-    }
+    class       dictionary;
+    location    "system";
+    object      topoSetDict;
 }
 
-
+actions
+(
+    {
+        name    innerCylinderSet;
+        type    cellSet;
+        action  new;
+        source  cylinderToCell;
+        sourceInfo
+        {
+            p1      (0 -0.2 0); // Ponto inferior do cilindro no eixo Y
+            p2      (0  0.2 0); // Ponto superior do cilindro no eixo Y
+            radius  0.6;        // Raio de 60cm (cobre com folga a hélice de ~50cm)
+        }
+    }
+    {
+        name    innerCylinder;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set     innerCylinderSet;
+        }
+    }
+);
 // ************************************************************************* //

@@ -5,26 +5,27 @@
 |   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
-
-forces
+FoamFile
 {
-    type          forces;
-
-    libs          (forces);
-
-    writeControl  timeStep;
-    timeInterval  1;
-
-    log           yes;
-
-    patches       ("propeller.*");
-    rho           rhoInf;     // Indicates incompressible
-    log           true;
-    rhoInf        1;          // Redundant for incompressible
-
-    CofR          (0 0 0);    // Rotation around centre line of propeller
-    pitchAxis     (0 1 0);
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      forces;
 }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+writeControl    timeStep;
+
+writeInterval   1;
+
+type            forces;
+libs            ("libforces.so");
+patches 	("propellerTip");
+rho             rhoInf;
+rhoInf          1.225;          // Densidade do ar (kg/m³)
+CofR            (0 -0.00800165 0);        // Centro de rotação
+p               p;              // Nome do campo de pressão
+U               U;              // Nome do campo de velocidade
 
 // ************************************************************************* //

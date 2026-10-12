@@ -9,15 +9,15 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volVectorField;
+    class       volScalarField;
     location    "0";
-    object      U;
+    object      epsilon;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 1 -1 0 0 0 0];
+dimensions      [0 2 -3 0 0 0 0];
 
-internalField   uniform (0 0 0);
+internalField   uniform 0.05;
 
 boundaryField
 {
@@ -25,27 +25,27 @@ boundaryField
 
     inlet
     {
-        type            fixedValue;
-        value           uniform (0 -3 0);
+        type            inletOutlet; // Mudado de fixedValue para estabilidade de sucção
+        inletValue      $internalField;
+        value           $internalField;
     }
 
     outlet
     {
         type            inletOutlet;
-        inletValue      uniform (0 0 0);
-        value           uniform (0 0 0);
+        inletValue      $internalField;
+        value           $internalField;
     }
 
-	walls
-	{
-		type            fixedValue;
-        value           uniform (0 -3 0);
-	}
-
-    "propellerTip"
+    walls
     {
-        type            movingWallVelocity;
-        value           uniform (0 0 0);
+        type            zeroGradient; // CORRIGIDO: Removido fixedValue de parede sem lei de parede
+    }
+
+    propellerTip
+    {
+        type            epsilonWallFunction; // Perfeito, mantenha assim
+        value           $internalField;
     }
 }
 

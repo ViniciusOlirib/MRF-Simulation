@@ -11,13 +11,13 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      epsilon;
+    object      k;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -3 0 0 0 0];
+dimensions      [0 2 -2 0 0 0 0];
 
-internalField   uniform 0.05;
+internalField   uniform 0.08;
 
 boundaryField
 {
@@ -25,7 +25,8 @@ boundaryField
 
     inlet
     {
-        type            fixedValue;
+        type            inletOutlet; // Mudado de fixedValue para estabilidade de sucção
+        inletValue      $internalField;
         value           $internalField;
     }
 
@@ -36,15 +37,14 @@ boundaryField
         value           $internalField;
     }
 
-	walls
-	{
-		type            fixedValue;
-        value           $internalField;
-	}
+    walls
+    {
+        type            zeroGradient; // CORRIGIDO: Removido fixedValue de parede sem lei de parede
+    }
 
     propellerTip
     {
-        type            epsilonWallFunction;
+        type            kqRWallFunction; // Perfeito, mantenha assim
         value           $internalField;
     }
 }

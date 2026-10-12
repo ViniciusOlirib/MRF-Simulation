@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     pimpleFoam;
+application     simpleFoam;
 
 startFrom       startTime;
 
@@ -23,36 +23,27 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         0.1;
+endTime         5000;              // 1000 iterações costumam ser suficientes
 
-deltaT          1e-5;
-writeControl    adjustable;
-writeInterval   0.001;
+deltaT          1;                 // Em solvers estacionários, deltaT representa iterações
 
-purgeWrite      0;
+writeControl    timeStep;
 
-writeFormat     binary;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-adjustTimeStep  yes;
-
-maxCo           1;
+writeInterval   50;                // Salvar a cada 50 iterações
 
 functions
 {
-    #includeFunc Q
-    #include "surfaces"
-    #include "forces"
-    #include "AMIWeights"
+    #includeFunc forces
 }
 
+fvModels
+{
+    MRF1
+    {
+        type            MRFSource;
+        active          true;
+        selectionMode   cellZone;
+        cellZone        innerCylinder;
+    }
+}
 // ************************************************************************* //

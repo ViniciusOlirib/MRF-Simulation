@@ -17,14 +17,14 @@ FoamFile
 
 ddtSchemes
 {
-    default         CrankNicolson 0.5;
+    default         steadyState;
 }
 
 gradSchemes
 {
-    default         Gauss linear;
-    grad(p)         Gauss linear;
-    grad(U)         cellLimited Gauss linear 1;
+    default         cellMDLimited Gauss linear 1;
+    grad(U)         cellMDLimited Gauss linear 1;
+    grad(p)         cellMDLimited Gauss linear 1;
 }
 
 divSchemes
@@ -38,7 +38,7 @@ divSchemes
 
 laplacianSchemes
 {
-    default         Gauss linear limited corrected 0.33;
+    default         Gauss linear limited corrected 0.5;
 }
 
 interpolationSchemes
@@ -48,7 +48,7 @@ interpolationSchemes
 
 snGradSchemes
 {
-    default         limited corrected 0.33;
+    default         limited corrected 0.5;
 }
 
 

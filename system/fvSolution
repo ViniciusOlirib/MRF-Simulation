@@ -57,22 +57,23 @@ solvers
     }
 }
 
-PIMPLE
+SIMPLE
 {
-    correctPhi          no;
-    nOuterCorrectors    2;
-    nCorrectors         1;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 3; // Aumentado para 3 para lidar com malhas complexas de hélice
+    consistent               yes;
 }
 
 relaxationFactors
 {
-    "(U|k|epsilon).*"   1;
+    fields
+    {
+        p               0.9;      // OBRIGATÓRIO para SIMPLEC (consistent yes)
+    }
+    equations
+    {
+        U               0.9;      // OBRIGATÓRIO para SIMPLEC (consistent yes)
+        k               0.7;      
+        epsilon         0.7;      
+    }
 }
-
-cache
-{
-    grad(U);
-}
-
 // ************************************************************************* //

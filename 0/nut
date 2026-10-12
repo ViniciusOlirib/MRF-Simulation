@@ -35,15 +35,14 @@ boundaryField
         value           uniform 0;
     }
 	
-	walls
-	{
-		type            calculated;
-        value           uniform 0;
-	}
+    walls
+    {
+        type            zeroGradient; // CORRIGIDO: Alinhado com o comportamento slip/zeroGradient do domínio
+    }
 
     propellerTip
     {
-        type            nutkWallFunction;
+        type            nutkWallFunction; // Perfeito! Essencial para o MRF com k-epsilon
         value           uniform 0;
     }
 }
