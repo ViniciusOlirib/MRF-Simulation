@@ -39,7 +39,9 @@ boundaryField
 
     walls
     {
-        type            zeroGradient;
+        type            inletOutlet;
+        inletValue      $internalField;
+        value           $internalField;
     }
 
     propellerTip

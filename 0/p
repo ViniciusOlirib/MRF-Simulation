@@ -37,7 +37,8 @@ boundaryField
 
     walls
     {
-        type            zeroGradient;
+        type            totalPressure;
+        p0              uniform 0;
     }
 
     propellerTip

@@ -17,7 +17,7 @@ FoamFile
 
 dimensions      [0 1 -1 0 0 0 0];
 
-internalField   uniform (0 0 0);
+internalField   uniform (0 -10 0);
 
 boundaryField
 {
@@ -26,19 +26,21 @@ boundaryField
     inlet
     {
         type            pressureInletOutletVelocity;
-        value           uniform (0 0 0);
+        value           uniform (0 -10 0);
     }
 
     outlet
     {
         type            inletOutlet;
         inletValue      uniform (0 0 0);
-        value           uniform (0 0 0);
+        value           uniform (0 -10 0);
     }
 
     walls
     {
-        type            slip;
+        type            inletOutlet;
+        inletValue      uniform (0 0 0);
+        value           uniform (0 0 0);
     }
 
     propellerTip
