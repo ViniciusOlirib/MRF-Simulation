@@ -52,4 +52,9 @@ snGradSchemes
     default         limited corrected 0.5;
 }
 
+wallDist
+{
+    method          meshWave;
+}
+
 // ************************************************************************* //

@@ -64,9 +64,9 @@ relaxationFactors
     }
     equations
     {
-        U               0.7;
-        k               0.5;
-        omega           0.5;
+        U               0.5;
+        k               0.4;
+        omega           0.4;
     }
 }
 
