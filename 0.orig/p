@@ -25,20 +25,20 @@ boundaryField
 
     inlet
     {
-        type            totalPressure;
-        p0              uniform 0;
+        type            freestreamPressure;
+        freestreamValue uniform 0;
     }
 
     outlet
     {
-        type            fixedValue;
-        value           uniform 0;
+        type            freestreamPressure;
+        freestreamValue uniform 0;
     }
 
     walls
     {
-        type            totalPressure;
-        p0              uniform 0;
+        type            freestreamPressure;
+        freestreamValue uniform 0;
     }
 
     propellerTip

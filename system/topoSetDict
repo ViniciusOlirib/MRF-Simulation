@@ -24,9 +24,9 @@ actions
         source  cylinderToCell;
         sourceInfo
         {
-            p1      (0 -0.10 0); // Ponto inferior no eixo Y (dentro da refinementBox)
-            p2      (0  0.08 0); // Ponto superior no eixo Y (dentro da refinementBox)
-            radius  0.55;        // Raio de 55cm (envolve a helice de R=50.8cm com 42mm de folga)
+            p1      (0 -0.30 0); // Estendido para 30 cm a jusante (-0.3D) para conter contracao inicial
+            p2      (0  0.14 0); // Estendido para 14 cm a montante (+0.14D)
+            radius  0.58;        // Raio de 58 cm (folga de 7,2 cm nas pontas, dentro da refinementBox)
         }
     }
     {

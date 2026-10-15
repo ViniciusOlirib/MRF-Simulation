@@ -25,21 +25,20 @@ boundaryField
 
     inlet
     {
-        type            pressureInletOutletVelocity;
-        value           uniform (0 -1 0);
+        type            freestreamVelocity;
+        freestreamValue uniform (0 -1 0);
     }
 
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform (0 0 0);
-        value           uniform (0 -1 0);
+        type            freestreamVelocity;
+        freestreamValue uniform (0 -1 0);
     }
 
     walls
     {
-        type            pressureInletOutletVelocity;
-        value           uniform (0 0 0);
+        type            freestreamVelocity;
+        freestreamValue uniform (0 0 0);
     }
 
     propellerTip
