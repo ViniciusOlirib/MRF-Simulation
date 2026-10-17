@@ -1,45 +1,31 @@
-# Simulação Aerodinâmica de Hélice com MRF no OpenFOAM-dev
+# General Propeller Analysis using OpenFOAM
 
-Este repositório contém os arquivos de configuração e scripts para a simulação aerodinâmica estacionária (RANS) de uma hélice genérica utilizando o método de Referencial Móvel de Rotação (**MRF - Multiple Reference Frame**) no **OpenFOAM-dev** (OpenFOAM Foundation / `openfoam.org`).
+This repository contains files and scripts for a CFD simulation of a general propeller using OpenFOAM. 
+The simulation was modified to allow the use of any propeller geometry by changing the propellerTip.obj file in ./constant/triSurface
+Note: The propeller diameter is resctricted to 0.2 m so as to reduce the domanin size and decrease the simulation time and disk space requirement.
 
----
 
-## Especificações Técnicas do Caso
+## Simulation Setup
 
-- **Solver:** `simpleFoam` (RANS incompressível estacionário com acoplamento SIMPLE).
-- **Modelo de Turbulência:** RAS $k$-$\epsilon$ (`kEpsilon`) com funções de parede em alta fidelidade (`kqRWallFunction`, `epsilonWallFunction`, `nutkWallFunction`).
-- **Framework MRF:** `constant/MRFProperties` nativo da OpenFOAM Foundation.
-  - **Zona de Células (`cellZone`):** `innerCylinder` (gerada via `system/topoSetDict`).
-  - **Eixo de Rotação (`axis`):** `(0 1 0)` (Eixo $Y$, alinhado ao canal do escoamento).
-  - **Origem (`origin`):** `(0 -0.00800165 0)` (Plano médio do cubo da hélice).
-  - **Velocidade Angular (`omega`):** `363.69 rad/s` (~3.473 RPM), gerando empuxo na direção $+Y$.
-- **Geometria:**
-  - Hélice: `constant/triSurface/propellerTip.obj` (Diâmetro: 1,016 m).
-  - Condição de contorno na pá: `movingWallVelocity` em `0/U` (malha estática compatível com MRF) e `fixedFluxPressure` em `0/p`.
+1. **Geometry**: The propellerTip.obj propeller geometry is used. This file can be produce by any CAD file.
 
----
+2. **Boundary Conditions**: Defined in the ./0 folder.
 
-## Fluxo de Execução
+3. **Solver**: The `pimpleFoam` solver is used.
 
-1. **Pré-Processamento e Malha (`Allrun.pre`):**
-   ```bash
-   ./Allrun.pre
-   ```
-   - Executa `blockMesh` para a malha de fundo.
-   - Extrai arestas de transição via `surfaceFeatures` (`propellerTip.eMesh`).
-   - Gera a malha tridimensional conformada com refinamento e camadas de limite via `snappyHexMesh`.
-   - Executa `topoSet` para criar a `cellZone innerCylinder` necessária para o MRF.
-   - Restaura o diretório `0/` limpo a partir de `0.orig/`.
 
-2. **Execução da Simulação (`Allrun`):**
-   ```bash
-   ./Allrun
-   ```
-   - Decompõe o domínio em paralelo via `decomposePar`.
-   - Executa o solver `simpleFoam` em paralelo.
-   - Reconstitui os campos processados via `reconstructPar`.
+## Running the Simulation
 
-3. **Pós-Processamento e Monitoramento:**
-   - As forças e momentos aerodinâmicos brutos são calculados continuamente e salvos em `postProcessing/forces/`.
-   - Os coeficientes aerodinâmicos ($C_L$, $C_D$, $C_M$) são monitorados em `postProcessing/forceCoeffs/`.
-   - Para visualização no ParaView, abra o arquivo `results.foam`.
+1. **Prepare the case**:
+
+  Run Allrun.pre
+
+2. **Run the Simulation**:
+
+  Run Allrun
+
+3. **Post-Processing**: Use the forces function in the `controlDict` to calculate thrust and torque on the propeller. The results are stored in the `postProcessing/forces` directory. The same applies to the moments.
+
+
+
+

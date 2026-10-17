@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      topoSetDict;
+}
+
+actions
+(
+    {
+        name    innerCylinderSet;
+        type    cellSet;
+        action  new;
+        source  cylinderToCell;
+        sourceInfo
+        {
+            p1      (0 -0.2 0); // Ponto inferior do cilindro no eixo Y
+            p2      (0  0.2 0); // Ponto superior do cilindro no eixo Y
+            radius  0.6;        // Raio de 60cm (cobre com folga a hélice de ~50cm)
+        }
+    }
+    {
+        name    innerCylinder;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set     innerCylinderSet;
+        }
+    }
+);
+// ************************************************************************* //

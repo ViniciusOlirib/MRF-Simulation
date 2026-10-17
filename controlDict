@@ -1,0 +1,49 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         5000;              // 1000 iterações costumam ser suficientes
+
+deltaT          1;                 // Em solvers estacionários, deltaT representa iterações
+
+writeControl    timeStep;
+
+writeInterval   50;                // Salvar a cada 50 iterações
+
+functions
+{
+    #includeFunc forces
+}
+
+fvModels
+{
+    MRF1
+    {
+        type            MRFSource;
+        active          true;
+        selectionMode   cellZone;
+        cellZone        innerCylinder;
+    }
+}
+// ************************************************************************* //
