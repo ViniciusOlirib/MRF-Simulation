@@ -7,12 +7,14 @@ cd "${0%/*}" || exit                                # Run from this directory
 
 touch results.foam
 
+rm -f log.decomposePar log.foamRun log.reconstructPar
+rm -rf processor* [1-9]* postProcessing
 restore0Dir
 
 runApplication decomposePar
 
 runParallel $(getApplication)
 
-runApplication reconstructPar
+runApplication reconstructPar -latestTime
 
 #------------------------------------------------------------------------------
