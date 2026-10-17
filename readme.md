@@ -14,7 +14,7 @@ Este repositório contém os arquivos de configuração e scripts para a simula�
   - Torque no Eixo ($Q_{\text{target}}$): $\approx 17,8\text{ N}\cdot\text{m}$
 - **Solver & Turbulência:** `foamRun` (`incompressibleFluid` / SIMPLE), modelo RAS `kOmegaSST`, malha de $\approx 6,15$ milhões de células.
 - **Framework MRF (`constant/MRFProperties`):**
-  - **Zona de Células (`cellZone`):** `innerCylinder` ($Y \in [-0,05; +0,05]\text{ m}$, $R = 0,525\text{ m}$, gerada via `system/topoSetDict`).
+  - **Zona de Células (`cellZone`):** `innerCylinder` ($Y \in [-0,12; +0,10]\text{ m}$, $R = 0,58\text{ m}$, gerada via `system/topoSetDict` dentro da região hexaédrica uniforme nível 3 da `refinementBox`).
   - **Eixo de Rotação (`axis`):** `(0 1 0)` | **Origem (`origin`):** `(0 -0.00800165 0)`.
   - **Condição na Pá (`propellerTip`):** `MRFnoSlip` em `0/U` e `fixedFluxPressure` em `0/p`.
 
@@ -31,19 +31,19 @@ Durante as iterações **40 a 80**, enquanto o escoamento axial limpo atravessa 
 ### B. Mecanismo de Degradação Tardia ($t > 1000$) na Configuração Anterior
 Na configuração anterior, o empuxo decaía até um platô espúrio de $105,2\text{ N}$ devido a três fatores acoplados:
 1. **Bloqueio de Saída por `freestreamPressure` + `freestreamVelocity`:** No contorno `outlet` ($Y = -10\text{ m}$), `freestreamPressure` impunha `zeroGradient` ($\partial p / \partial n = 0$) na saída do jato, deixando a pressão estática a jusante sem âncora atmosférica ($p = 0$). Além disso, quando ocorria refluxo ($\phi < 0$), `freestreamVelocity` forçava `inletValue (0 -1 0)` apontando para fora do domínio, criando um tampão numérico em $Y \in [-10, -2]\text{ m}$ ($U \approx 0$).
-2. **Bombeamento Centrífugo MRF na Esteira Livre (`topoSetDict`):** Os termos-fonte centrífugos ($\Omega^2 r \approx 67.220\text{ m/s}^2 \approx 6.850\text{ G}$ na ponta) atuam sobre todas as células da `cellZone innerCylinder`. Como o cilindro MRF havia sido estendido até $Y = -0,30\text{ m}$ a jusante ($27\text{ cm}$ abaixo das pás, saindo inclusive da `refinementBox` em $Y = -0,15\text{ m}$) e $R = 0,58\text{ m}$, o ar já ejetado pelas pás continuava sofrendo aceleração centrífuga artificial no vazio, abrindo a esteira em um cone radial oblíquo de $35^\circ\text{ a }45^\circ$.
-3. **Recirculação Toroidal:** O jato defletido atingia as laterais e retornava ao disco da hélice, aumentando a velocidade induzida $V_i$ e derrubando o ângulo de ataque efetivo $\alpha_{\text{eff}} = \theta - \text{arctg}(V_i / \Omega r)$.
+2. **Fuga de Vazão Axial pelas Laterais (`walls`):** Como `walls` ($600\text{ m}^2$) estava aberta com `freestreamValue (0 0 0)` e $p=0$, a vazão axial de $100\text{ m}^3/\text{s}$ admitida no `inlet` escapava lateralmente antes de lavar a metade inferior do túnel.
+3. **Extrapolação da Zona MRF Fora da `refinementBox` (`topoSetDict`):** O cilindro MRF havia sido estendido até $Y = -0,30\text{ m}$ a jusante, saindo da `refinementBox` ($Y_{\min} = -0,15\text{ m}$) para dentro da malha grossa de nível 0 e aplicando aceleração centrífuga de $6.850\text{ G}$ sobre a esteira livre.
 
 ---
 
-## 3. Configuração Atualizada para Escoamento Axial Livre (MRF Tuning)
+## 3. Configuração Estabilizada para Escoamento Axial Livre (MRF Tuning)
 
-1. **Condições de Contorno Abertas (`0/U` e `0/p`):**
-   - **`0/p` (`inlet`, `outlet`, `walls`):** Substituído `freestreamPressure` por `totalPressure` com `p0 uniform 0`. Na saída ($\phi \ge 0$), fixa a pressão estática em $p = 0$, permitindo que o jato saia livremente sem reflexão; na admissão ($\phi < 0$), aplica a relação de Bernoulli $p = p_0 - \frac{1}{2}|\vec{U}|^2$.
-   - **`0/U` (`outlet` e `walls`):** Substituído por `inletOutlet` com `inletValue uniform (0 0 0)`, garantindo saída livre (`zeroGradient`) para o jato e amortecendo qualquer tentativa de refluxo (`backflow`) com velocidade nula.
-   - **`0/U` (`inlet` e `internalField`):** Configurado com `inletOutlet` e velocidade axial estabilizadora $V_\infty = 1,0\text{ m/s}$ (`uniform (0 -1 0)`, razão de avanço quase-estática $J = V_\infty / (nD) \approx 0,017$), mantendo a lavagem convectiva axial do cilindro MRF.
-2. **Confinamento Estrito da Zona MRF (`system/topoSetDict`):**
-   - A `cellZone innerCylinder` foi ajustada de $Y \in [-0,30; +0,14]\text{ m}, R = 0,58\text{ m}$ para **$Y \in [-0,05; +0,05]\text{ m}, R = 0,525\text{ m}$** (idêntico ao `innerCylinder.obj`), reduzindo em mais de $80\%$ o volume de ar livre submetido à aceleração centrífuga de $6.850\text{ G}$ e liberando a esteira a jusante ($Y < -0,05\text{ m}$) para fluir em referencial inercial estacionário.
+1. **Condições de Contorno Bem-Postas e Lineares (`0/U` e `0/p`):**
+   - **`inlet` ($Y = +5\text{ m}$):** `fixedValue uniform (0 -1 0)` em `0/U` e `zeroGradient` em `0/p` (fornece $Q = 100\text{ m}^3/\text{s}$ de escoamento axial estabilizador a $V_\infty = 1,0\text{ m/s}$, $J \approx 0,017$, sem conflito Dirichlet-Dirichlet).
+   - **`walls` ($X, Z = \pm 5\text{ m}$):** `fixedValue uniform (0 -1 0)` em `0/U` (fluxo normal identicamente nulo $\phi_{\text{walls}} = 0$ e velocidade tangencial igual a $V_\infty$, agindo como parede de túnel de vento sem atrito) e `zeroGradient` em `0/p`. Impede a perda lateral da vazão de lavagem axial e elimina recirculação lateral.
+   - **`outlet` ($Y = -10\text{ m}$):** `fixedValue uniform 0` em `0/p` (âncora linear de pressão atmosférica em toda a seção de saída, evitando a instabilidade quadrática $-\frac{1}{2}|\vec{U}|^2$ do `totalPressure`) e `inletOutlet` com `inletValue uniform (0 0 0)` em `0/U` (saída livre `zeroGradient` para o jato e bloqueio de refluxo).
+2. **Posicionamento da Interface MRF em Malha Hexaédrica Uniforme (`system/topoSetDict`):**
+   - A `cellZone innerCylinder` está definida em **$Y \in [-0,12; +0,10]\text{ m}, R = 0,58\text{ m}$**, permanecendo $100\%$ dentro da `refinementBox` (nível 3, $Y \in [-0,15; +0,15]\text{ m}$) e fora da casca de transição poliédrica (`level 8 -> 3`, $\approx 3\text{ cm}$ de espessura) ao redor da ponta das pás ($R_{\text{tip}} = 0,508\text{ m}$).
 
 ---
 

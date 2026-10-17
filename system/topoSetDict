@@ -24,9 +24,9 @@ actions
         source  cylinderToCell;
         sourceInfo
         {
-            p1      (0 -0.05 0); // Confinado ao disco da helice (-5 cm a jusante, igual ao innerCylinder.obj)
-            p2      (0  0.05 0); // Confinado ao disco da helice (+5 cm a montante, igual ao innerCylinder.obj)
-            radius  0.525;       // Raio de 52,5 cm (folga justa de 1,7 cm na ponta, evitando bombeamento centrifugo na esteira)
+            p1      (0 -0.14 0); // Dentro da refinementBox (Y >= -0.15m) e fora das camadas de transicao da pa
+            p2      (0  0.14 0); // Mantido no valor original estavel (+14 cm a montante, dentro da refinementBox)
+            radius  0.58;        // Mantido no valor original estavel (58 cm, fora da transicao nivel 8->3 da ponta)
         }
     }
     {

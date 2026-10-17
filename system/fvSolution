@@ -31,6 +31,7 @@ solvers
         $pcorr;
         tolerance       1e-6;
         relTol          0.01;
+        maxIter         200;
     }
 
     "(U|k|omega)"
