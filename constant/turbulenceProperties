@@ -22,6 +22,11 @@ RAS
     model           kOmegaSST;
     turbulence      on;
     printCoeffs     on;
+
+    kOmegaSSTCoeffs
+    {
+        c1              1.0; // Limita P_k <= 1.0 * betaStar*k*omega nas linhas de corrente fechadas do MRF e vortices de ponta
+    }
 }
 
 // ************************************************************************* //

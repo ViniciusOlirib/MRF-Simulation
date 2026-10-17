@@ -21,7 +21,7 @@ solvers
         solver          GAMG;
         tolerance       1e-2;
         relTol          0;
-        smoother        DICGaussSeidel;
+        smoother        GaussSeidel;
         cacheAgglomeration no;
         maxIter         50;
     }

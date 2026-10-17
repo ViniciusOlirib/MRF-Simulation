@@ -79,15 +79,6 @@ castellatedMeshControls
                 type    wall;
             }
         }
-
-        innerCylinder
-        {
-            // Cria a interface cilíndrica lisa conformada (faceZone + cellZone) no nível 4 (~5.2 mm)
-            level           (4 4);
-            faceZone        innerCylinder;
-            cellZone        innerCylinder;
-            cellZoneInside  inside;
-        }
     }
 
     // Detecta ângulos de curvatura acentuados na superfície e aplica o nível superior (8)
@@ -98,7 +89,7 @@ castellatedMeshControls
         innerCylinder
         {
             mode        inside;
-            level       4; // Refinamento nível 4 (~5.2 mm) dentro do cilindro MRF (~8.5-9M células totais)
+            level       4; // Refinamento hexaédrico uniforme nível 4 (~5.2 mm) em toda a região do cilindro MRF
         }
         refinementBox
         {
@@ -118,15 +109,15 @@ castellatedMeshControls
 
 snapControls
 {
-    nSmoothPatch 10;           // Aumentado de 5 para 10: suaviza os degraus antes da projeção
-    tolerance 1.2;              // Aumentado de 1.0 para 2.0: atrai nós mais distantes para o CAD
+    nSmoothPatch 3;             // Reduzido de 10 para 3: evita cruzar extradorso/intradorso no bordo de fuga fino
+    tolerance 1.0;              // Tolerancia padrao para evitar atrair nos distantes que invertem celulas
     nSolveIter 300;
-    nRelaxIter 10;              // Aumentado para dar mais flexibilidade ao ajuste dos pontos
+    nRelaxIter 10;
     
-    nFeatureSnapIter 20;        // Aumentado de 15 para 20: fixa melhor o bordo de ataque e fuga
-    implicitFeatureSnap true;   // ATIVADO: captura curvaturas suaves onde não há linhas de eMesh explícitas
-    explicitFeatureSnap true; 
-    multiRegionFeatureSnap true;
+    nFeatureSnapIter 15;
+    implicitFeatureSnap false;  // DESATIVADO: evita conflito com explicitFeatureSnap (.eMesh) no bordo de fuga
+    explicitFeatureSnap true;   // Usa exclusivamente as linhas extraidas pelo surfaceFeatures (.eMesh)
+    multiRegionFeatureSnap false;
 }
 
 addLayersControls
@@ -166,15 +157,15 @@ meshQualityControls
     maxInternalSkewness 4;
     maxConcave 80;
     
-    minVol 1e-15;
-    minArea -1;
+    minVol 1e-16;
+    minArea 1e-13;              // Ativado (antes estava -1, ignorando faces de area zero)
     minTetQuality 1e-30;
     
     minTwist 0.02;
     minDeterminant 0.001;
     minFaceWeight 0.05;
     minVolRatio 0.01;
-    minTriangleTwist -1;
+    minTriangleTwist 0.01;      // Ativado (antes estava -1, ignorando triangulos torcidos/invertidos)
 
     nSmoothScale 4;
     errorReduction 0.75;

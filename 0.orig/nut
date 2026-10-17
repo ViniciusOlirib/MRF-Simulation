@@ -43,7 +43,7 @@ boundaryField
 
     propellerTip
     {
-        type            nutkWallFunction;
+        type            nutUSpaldingWallFunction;
         value           uniform 0;
     }
 }
