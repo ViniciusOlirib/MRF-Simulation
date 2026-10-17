@@ -14,7 +14,7 @@ Este repositório contém os arquivos de configuração e scripts para a simula�
   - Torque no Eixo ($Q_{\text{target}}$): $\approx 17,8\text{ N}\cdot\text{m}$
 - **Solver & Turbulência:** `foamRun` (`incompressibleFluid` / SIMPLE), modelo RAS `kOmegaSST`, malha de $\approx 6,15$ milhões de células.
 - **Framework MRF (`constant/MRFProperties`):**
-  - **Zona de Células (`cellZone`):** `innerCylinder` ($Y \in [-0,14; +0,14]\text{ m}$, $R = 0,58\text{ m}$, gerada via `system/topoSetDict` dentro da região hexaédrica uniforme nível 3 da `refinementBox`).
+  - **Zona de Células e Faces (`cellZone` + `faceZone`):** `innerCylinder` ($Y \in [-0,14; +0,14]\text{ m}$, $R = 0,58\text{ m}$, gerada e conformada diretamente pelo `snappyHexMesh` em nível 4 via `searchableCylinder`, eliminando a borda em escada do `topoSet`).
   - **Eixo de Rotação (`axis`):** `(0 1 0)` | **Origem (`origin`):** `(0 -0.00800165 0)`.
   - **Condição na Pá (`propellerTip`):** `MRFnoSlip` em `0/U` e `fixedFluxPressure` em `0/p`.
 
@@ -22,46 +22,46 @@ Este repositório contém os arquivos de configuração e scripts para a simula�
 
 ## 2. Validação Física e Diagnóstico do Regime de Hover ($J \approx 0$)
 
-### A. Validação na Janela Inicial ($40 \le t \le 80$)
-Durante as iterações **40 a 80**, enquanto o escoamento axial limpo atravessa o disco do rotor sem contaminação por refluxo de fronteira ou bombeamento centrífugo acumulado:
-- **Empuxo atingido:** **$327,9\text{ N}$** (**$94,2\%$** do valor experimental de bancada de $348\text{ N}$, erro $< 5,8\%$).
-- **Torque no eixo:** **$-14,1\text{ N}\cdot\text{m}$**.
-- **Padrão de escoamento:** Jato axial cilíndrico colimado descendo livremente no sentido $-Y$.
+### A. Validação na Janela Axial (`40 <= t <= 111`)
+Durante as iterações **40 a 111**, enquanto o escoamento axial limpo atravessa o disco do rotor:
+- **Empuxo atingido:** **$347,0\text{ N}$ a $374,4\text{ N}$** (precisão de **$99,7\%$** em `t = 111` frente ao valor experimental de bancada de $348\text{ N}$).
+- **Torque no eixo:** **$-13,9\text{ a }-15,6\text{ N}\cdot\text{m}$**.
+- **Padrão de escoamento:** Jato axial cilíndrico colimado com contração clássica de tubo de corrente (*vena contracta*) descendo livremente até o `outlet` no sentido $-Y$.
 
-### B. Mecanismo de Degradação Tardia ($t > 1000$) na Configuração Anterior
-Na configuração anterior, o empuxo decaía até um platô espúrio de $105,2\text{ N}$ devido a três fatores acoplados:
-1. **Bloqueio de Saída por `freestreamPressure` + `freestreamVelocity`:** No contorno `outlet` ($Y = -10\text{ m}$), `freestreamPressure` impunha `zeroGradient` ($\partial p / \partial n = 0$) na saída do jato, deixando a pressão estática a jusante sem âncora atmosférica ($p = 0$). Além disso, quando ocorria refluxo ($\phi < 0$), `freestreamVelocity` forçava `inletValue (0 -1 0)` apontando para fora do domínio, criando um tampão numérico em $Y \in [-10, -2]\text{ m}$ ($U \approx 0$).
-2. **Extrapolação da Zona MRF Fora da `refinementBox` (`topoSetDict`):** O cilindro MRF havia sido estendido até $Y = -0,30\text{ m}$ a jusante, saindo da `refinementBox` ($Y_{\min} = -0,15\text{ m}$) para dentro da malha grossa de nível 0 e aplicando aceleração centrífuga de $6.850\text{ G}$ sobre a esteira livre.
-3. **Recirculação Toroidal:** O jato defletido atingia as laterais e retornava ao disco da hélice, aumentando a velocidade induzida $V_i$ e derrubando o ângulo de ataque efetivo $\alpha_{\text{eff}} = \theta - \text{arctg}(V_i / \Omega r)$.
+### B. Causa Raiz da Degradação Tardia na Malha Antiga: Borda em Escada do `topoSet`
+Na malha anterior, a `cellZone innerCylinder` era criada após o `snappyHexMesh` usando `topoSet` (`cylinderToCell`) sobre uma malha cartesiana:
+- Como as faces dos cubos cartesianos apontam nas direções $\pm X$ e $\pm Z$ (em vez da direção radial $\hat{r}$), a parede lateral do cilindro MRF formava uma **escada serrilhada**.
+- Nessas faces em degrau, o fluxo de rotação do MRF $(\vec{\omega} \times \vec{r}_f) \cdot \vec{S}_f \neq 0$ (chegando a $\pm 190\text{ m/s} \times A_f$) injetava fontes/sorvedouros artificiais na equação de pressão, gerando dois jatos radiais espúrios a $90^\circ$ nas pontas que drenavam o empuxo ao longo de 1000 iterações.
 
 ---
 
-## 3. Configuração Estabilizada para Escoamento Axial Livre (MRF Tuning)
+## 3. Configuração com Interface MRF Cilíndrica Conformada (~8,8 Milhões de Células)
 
-1. **Condições de Contorno Abertas (`0/U` e `0/p`):**
-   - **`0/p` (`inlet`, `outlet`, `walls`):** Configurado com `totalPressure` (`p0 uniform 0`). Na saída ($\phi \ge 0$), fixa a pressão estática em $p = 0$, permitindo que o jato saia livremente sem reflexão; na admissão ($\phi < 0$), aplica a relação de Bernoulli $p = p_0 - \frac{1}{2}|\vec{U}|^2$.
-   - **`0/U` (`outlet` e `walls`):** Configurado com `inletOutlet` e `inletValue uniform (0 0 0)`, garantindo saída livre (`zeroGradient`) para o jato e amortecendo qualquer tentativa de refluxo (`backflow`) com velocidade nula.
-   - **`0/U` (`inlet` e `internalField`):** Configurado com `inletOutlet` e velocidade axial estabilizadora $V_\infty = 1,0\text{ m/s}$ (`inletValue uniform (0 -1 0)`, razão de avanço quase-estática $J = V_\infty / (nD) \approx 0,017$), mantendo a lavagem convectiva axial do cilindro MRF.
-2. **Posicionamento da Interface MRF em Malha Hexaédrica Uniforme (`system/topoSetDict`):**
-   - A `cellZone innerCylinder` está definida em **$Y \in [-0,14; +0,14]\text{ m}, R = 0,58\text{ m}$**, permanecendo $100\%$ dentro da `refinementBox` (nível 3, $Y \in [-0,15; +0,15]\text{ m}$) e fora da casca de transição poliédrica (`level 8 -> 3`, $\approx 3\text{ cm}$ de espessura) ao redor da ponta das pás ($R_{\text{tip}} = 0,508\text{ m}$).
+1. **Interface MRF Cilíndrica Lisa no `snappyHexMeshDict` (Sem `topoSet`):**
+   - O cilindro `innerCylinder` é definido como um cilindro analítico (`searchableCylinder`, $R = 0,58\text{ m}, Y \in [-0,14; +0,14]\text{ m}$) dentro de **`refinementSurfaces`** com `faceZone innerCylinder`, `cellZone innerCylinder` e `cellZoneInside inside` no **nível 4** ($\Delta x \approx 5,2\text{ mm}$).
+   - Durante a etapa de `snap`, o `snappyHexMesh` projeta os vértices da interface exatamente sobre a superfície cilíndrica, garantindo que $(\vec{\omega} \times \vec{r}_f) \cdot \vec{S}_f = 0$ em toda a lateral do cilindro MRF.
+2. **Refinamento Gradual da Malha e da Esteira ($\approx 8,5\text{ a }9,0$ Milhões de Células):**
+   - **`blockMeshDict`:** Malha de fundo com cubos exatos de $83,33\text{ mm}$ (`120 x 180 x 120` $= 2,592\text{M}$ células).
+   - **`innerCylinder` (Nível 4, $\approx 5,2\text{ mm}$):** Alta resolução em todo o disco rotativo e na interface cilíndrica.
+   - **`refinementBox` (Nível 3, $\approx 10,4\text{ mm}$):** Transição suave ao redor do cilindro MRF.
+   - **`wakeCylinder` (Nível 2, $\approx 20,8\text{ mm}$):** Cilindro de refinamento na esteira ($R = 0,65\text{ m}, Y \in [-2,50; -0,14]\text{ m}$) para capturar a contração do tubo de jato (*vena contracta*).
+3. **Condições de Contorno Abertas (`0/U` e `0/p`):**
+   - **`0/p` (`inlet`, `outlet`, `walls`):** `totalPressure` (`p0 uniform 0`).
+   - **`0/U` (`outlet` e `walls`):** `inletOutlet` com `inletValue uniform (0 0 0)`.
+   - **`0/U` (`inlet` e `internalField`):** `inletOutlet` com `inletValue uniform (0 -1 0)`.
 
 ---
 
 ## 4. Fluxo de Execução
 
-1. **Reexecução Rápida do Solver na Malha Existente (`Allrun.solver`):**
-   *(Não requer regeração da malha `snappyHexMesh` — atualiza `0/` e a `cellZone` via `topoSet` diretamente)*
-   ```bash
-   ./Allrun.solver
-   ```
-
-2. **Pré-Processamento Completo e Malha (`Allrun.pre` / `Allrun`):**
+1. **Gerar a Nova Malha Conformada (~8,8M células) e Rodar Completo (`Allrun`):**
    ```bash
    ./Allrun.pre
-   ./Allrun
+   ./Allrun.solver
    ```
+   *(Ou simplesmente `./Allrun`)*
 
-3. **Pós-Processamento e Monitoramento:**
+2. **Pós-Processamento e Monitoramento:**
    - Forças e momentos brutos: `postProcessing/forces/0/forces.dat`
    - Coeficientes adimensionais: `postProcessing/forceCoeffs/0/forceCoeffs.dat`
    - Visualização no ParaView: `results.foam` / `visualizar.foam`

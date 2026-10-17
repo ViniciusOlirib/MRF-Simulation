@@ -4,13 +4,11 @@ cd "${0%/*}" || exit                                # Run from this directory
 #------------------------------------------------------------------------------
 
 echo "Limpando solucao anterior..."
+rm -f log.topoSet log.decomposePar log.foamRun log.simpleFoam log.reconstructPar
 rm -rf processor*
 rm -rf [1-9]* postProcessing
 rm -rf 0
 cp -r 0.orig 0
-
-echo "Atualizando cellZone do MRF via topoSet..."
-runApplication topoSet
 
 echo "Decompondo campos para 16 nucleos..."
 runApplication decomposePar

@@ -20,11 +20,20 @@ addLayers       true;
 
 geometry
 {
-    innerCylinder.obj
+    innerCylinder
     {
-        type        triSurfaceMesh;
-        file        "innerCylinder.obj";
-        name        innerCylinder;
+        type        searchableCylinder;
+        point1      (0 -0.14 0);
+        point2      (0  0.14 0);
+        radius      0.58;
+    }
+
+    wakeCylinder
+    {
+        type        searchableCylinder;
+        point1      (0 -2.50 0);
+        point2      (0 -0.14 0);
+        radius      0.65;
     }
 
     propellerTip.obj
@@ -37,8 +46,8 @@ geometry
     refinementBox
     {
         type        searchableBox;
-        min         (-0.6 -0.15 -0.6);
-        max         ( 0.6  0.15  0.6);
+        min         (-0.65 -0.20 -0.65);
+        max         ( 0.65  0.20  0.65);
     }
 }
 
@@ -70,6 +79,15 @@ castellatedMeshControls
                 type    wall;
             }
         }
+
+        innerCylinder
+        {
+            // Cria a interface cilíndrica lisa conformada (faceZone + cellZone) no nível 4 (~5.2 mm)
+            level           (4 4);
+            faceZone        innerCylinder;
+            cellZone        innerCylinder;
+            cellZoneInside  inside;
+        }
     }
 
     // Detecta ângulos de curvatura acentuados na superfície e aplica o nível superior (8)
@@ -80,18 +98,22 @@ castellatedMeshControls
         innerCylinder
         {
             mode        inside;
-            level       2; // Mantido em 2 para não explodir o volume do cilindro
+            level       4; // Refinamento nível 4 (~5.2 mm) dentro do cilindro MRF (~8.5-9M células totais)
         }
         refinementBox
         {
             mode        inside;
-            level       3; // Refina apenas a caixa delimitada ao redor do rotor
+            level       3; // Caixa de transição nível 3 (~10.4 mm) ao redor do cilindro MRF
         }
-        // O bloco propellerTip (mode distance) foi removido para evitar overhead.
+        wakeCylinder
+        {
+            mode        inside;
+            level       2; // Refinamento nível 2 (~20.8 mm) na esteira (vena contracta) até Y = -2.5 m
+        }
     }
 
     locationInMesh (1.5 1.0 1.0);
-    allowFreeStandingZoneFaces false;
+    allowFreeStandingZoneFaces true;
 }
 
 snapControls

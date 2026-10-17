@@ -3,6 +3,10 @@ cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
 #------------------------------------------------------------------------------
 
+# Limpar logs e malha antiga para garantir que o runApplication execute todas as etapas
+rm -f log.blockMesh log.surfaceFeatures log.surfaceFeatureExtract log.snappyHexMesh log.renumberMesh log.topoSet
+rm -rf constant/polyMesh processor*
+
 # 1. Geracao da malha de fundo
 runApplication blockMesh
 
@@ -14,16 +18,13 @@ else
     runApplication surfaceFeatureExtract
 fi
 
-# 3. Geracao da malha do rotor e refinamento local
+# 3. Geracao da malha do rotor, cellZone/faceZone cilindrica conformada e camadas limite
 runApplication snappyHexMesh -overwrite
 
-# 4. Renumeracao para otimizar largura de banda da matriz
+# 4. Renumeracao para otimizar largura de banda da matriz (preserva cellZones e faceZones)
 runApplication renumberMesh -overwrite
 
-# 5. Criacao da cellZone do MRF via topoSet (cria innerCylinder)
-runApplication topoSet
-
-# 6. Restaurar campos limpos para a simulacao
+# 5. Restaurar campos limpos para a simulacao
 rm -rf 0
 restore0Dir
 
