@@ -1,0 +1,25 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+echo "Limpando solucao anterior..."
+rm -rf processor*
+rm -rf [1-9]* postProcessing
+rm -rf 0
+cp -r 0.orig 0
+
+echo "Atualizando cellZone do MRF via topoSet..."
+runApplication topoSet
+
+echo "Decompondo campos para 16 nucleos..."
+runApplication decomposePar
+
+echo "Executando foamRun em paralelo..."
+runParallel $(getApplication)
+
+echo "Reconstruindo campos do tempo final..."
+runApplication reconstructPar -latestTime
+
+echo "Simulacao finalizada com sucesso! Abra results.foam no ParaView."
+#------------------------------------------------------------------------------

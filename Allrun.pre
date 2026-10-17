@@ -1,0 +1,30 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# 1. Geracao da malha de fundo
+runApplication blockMesh
+
+# 2. Extracao de caracteristicas geometricas (.eMesh)
+# No OpenFOAM-dev (Foundation), o utilitario e surfaceFeatures
+if command -v surfaceFeatures >/dev/null 2>&1; then
+    runApplication surfaceFeatures
+else
+    runApplication surfaceFeatureExtract
+fi
+
+# 3. Geracao da malha do rotor e refinamento local
+runApplication snappyHexMesh -overwrite
+
+# 4. Renumeracao para otimizar largura de banda da matriz
+runApplication renumberMesh -overwrite
+
+# 5. Criacao da cellZone do MRF via topoSet (cria innerCylinder)
+runApplication topoSet
+
+# 6. Restaurar campos limpos para a simulacao
+rm -rf 0
+restore0Dir
+
+#------------------------------------------------------------------------------

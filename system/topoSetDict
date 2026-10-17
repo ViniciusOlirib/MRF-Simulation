@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  https://openfoam.org                  |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    innerCylinderSet;
+        type    cellSet;
+        action  new;
+        source  cylinderToCell;
+        sourceInfo
+        {
+            p1      (0 -0.05 0); // Confinado ao disco da helice (-5 cm a jusante, igual ao innerCylinder.obj)
+            p2      (0  0.05 0); // Confinado ao disco da helice (+5 cm a montante, igual ao innerCylinder.obj)
+            radius  0.525;       // Raio de 52,5 cm (folga justa de 1,7 cm na ponta, evitando bombeamento centrifugo na esteira)
+        }
+    }
+    {
+        name    innerCylinder;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set     innerCylinderSet;
+        }
+    }
+);
+
+// ************************************************************************* //

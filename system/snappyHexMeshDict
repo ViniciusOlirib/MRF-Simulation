@@ -1,0 +1,168 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                                                                |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012 / dev                        |
+|   \\  /    A nd           | Website:  www.openfoam.com                       |
+|    \\/     M anipulation  |                                                  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+geometry
+{
+    innerCylinder.obj
+    {
+        type        triSurfaceMesh;
+        file        "innerCylinder.obj";
+        name        innerCylinder;
+    }
+
+    propellerTip.obj
+    {
+        type        triSurfaceMesh;
+        file        "propellerTip.obj";
+        name        propellerTip;
+    }
+    
+    refinementBox
+    {
+        type        searchableBox;
+        min         (-0.6 -0.15 -0.6);
+        max         ( 0.6  0.15  0.6);
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 4000000;
+    maxGlobalCells 30000000; // Teto de segurança
+    minRefinementCells 0;
+    maxLoadUnbalance 0.10;
+
+    nCellsBetweenLevels 3; // Garante transição suave entre os níveis
+
+    features
+    (
+        {
+            file        "propellerTip.eMesh";
+            level       7; // Alinhado com o nível máximo da superfície
+        }
+    );
+
+    refinementSurfaces
+    {
+        propellerTip
+        {
+            // Permite que regiões de curvatura subam até o nível 8 para dar pontos suficientes ao snap
+            level       (7 8);
+            patchInfo
+            {
+                type    wall;
+            }
+        }
+    }
+
+    // Detecta ângulos de curvatura acentuados na superfície e aplica o nível superior (8)
+    resolveFeatureAngle 25;
+
+    refinementRegions
+    {
+        innerCylinder
+        {
+            mode        inside;
+            level       2; // Mantido em 2 para não explodir o volume do cilindro
+        }
+        refinementBox
+        {
+            mode        inside;
+            level       3; // Refina apenas a caixa delimitada ao redor do rotor
+        }
+        // O bloco propellerTip (mode distance) foi removido para evitar overhead.
+    }
+
+    locationInMesh (1.5 1.0 1.0);
+    allowFreeStandingZoneFaces false;
+}
+
+snapControls
+{
+    nSmoothPatch 10;           // Aumentado de 5 para 10: suaviza os degraus antes da projeção
+    tolerance 1.2;              // Aumentado de 1.0 para 2.0: atrai nós mais distantes para o CAD
+    nSolveIter 300;
+    nRelaxIter 10;              // Aumentado para dar mais flexibilidade ao ajuste dos pontos
+    
+    nFeatureSnapIter 20;        // Aumentado de 15 para 20: fixa melhor o bordo de ataque e fuga
+    implicitFeatureSnap true;   // ATIVADO: captura curvaturas suaves onde não há linhas de eMesh explícitas
+    explicitFeatureSnap true; 
+    multiRegionFeatureSnap true;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+    layers
+    {
+        propellerTip
+        {
+            nSurfaceLayers 5;
+        }
+    }
+    expansionRatio 1.15;
+    finalLayerThickness 0.5;
+    minThickness 0.01; 
+    
+    nBufferCellsNoExtrude 2; // Proteção para a quina do bordo de fuga
+
+    nGrow 0;
+    featureAngle 60;
+    nRelaxIter 5;
+    
+    nSmoothSurfaceNormals 3;
+    nSmoothNormals 10;        
+    nSmoothThickness 10;
+    
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedialAxisAngle 90;
+    nLayerIter 50;
+}
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    
+    minVol 1e-15;
+    minArea -1;
+    minTetQuality 1e-30;
+    
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+
+    nSmoothScale 4;
+    errorReduction 0.75;
+    
+    relaxed
+    {
+        maxNonOrtho 75;
+    }
+}
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //
