@@ -24,9 +24,9 @@ actions
         source  cylinderToCell;
         sourceInfo
         {
-            p1      (0 -0.14 0); // Dentro da refinementBox (Y >= -0.15m) e fora das camadas de transicao da pa
-            p2      (0  0.14 0); // Mantido no valor original estavel (+14 cm a montante, dentro da refinementBox)
-            radius  0.58;        // Mantido no valor original estavel (58 cm, fora da transicao nivel 8->3 da ponta)
+            p1      (0 -0.07 0); // 4,3 cm abaixo da pa (fora da casca de transicao de 3 cm, reduzindo o jato radial MRF)
+            p2      (0  0.05 0); // 3,9 cm acima da pa (fora da casca de transicao de 3 cm)
+            radius  0.56;        // 5,2 cm de folga na ponta (na malha uniforme nivel 3, sem cortar a ponta da pa)
         }
     }
     {

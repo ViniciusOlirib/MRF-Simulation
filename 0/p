@@ -25,9 +25,7 @@ boundaryField
 
     inlet
     {
-        type            totalPressure;
-        p0              uniform 0;
-        value           uniform 0;
+        type            zeroGradient;
     }
 
     outlet
@@ -39,9 +37,7 @@ boundaryField
 
     walls
     {
-        type            totalPressure;
-        p0              uniform 0;
-        value           uniform 0;
+        type            zeroGradient;
     }
 
     propellerTip
