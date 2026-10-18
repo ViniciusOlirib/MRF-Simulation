@@ -10,9 +10,6 @@ rm -rf [1-9]* postProcessing
 rm -rf 0
 cp -r 0.orig 0
 
-echo "Atualizando cellZone innerCylinder na regiao ortogonal nivel 4 via topoSet..."
-runApplication topoSet
-
 echo "Decompondo campos para 16 nucleos..."
 runApplication decomposePar
 

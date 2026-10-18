@@ -33,13 +33,10 @@ fi
 rm -rf processor*
 rm -f log.decomposePar log.reconstructPar
 
-# 6. Renumeracao para otimizar largura de banda da matriz
+# 6. Renumeracao para otimizar largura de banda da matriz (preserva cellZones e faceZones)
 runApplication renumberMesh -overwrite
 
-# 7. Criacao da cellZone innerCylinder na regiao hexaedrica ortogonal nivel 4
-runApplication topoSet
-
-# 8. Restaurar campos limpos para a simulacao
+# 7. Restaurar campos limpos para a simulacao
 restore0Dir
 
 #------------------------------------------------------------------------------

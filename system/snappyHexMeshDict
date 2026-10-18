@@ -23,6 +23,14 @@ geometry
     innerCylinder
     {
         type        searchableCylinder;
+        point1      (0 -0.10 0);
+        point2      (0  0.10 0);
+        radius      0.545;
+    }
+
+    mrfBufferCylinder
+    {
+        type        searchableCylinder;
         point1      (0 -0.14 0);
         point2      (0  0.14 0);
         radius      0.58;
@@ -79,6 +87,15 @@ castellatedMeshControls
                 type    wall;
             }
         }
+
+        innerCylinder
+        {
+            // Snapped dentro de uma regiao hexaedrica uniforme nivel 4 (sem mudanca de nivel 4->3 na interface!)
+            level           (4 4);
+            faceZone        innerCylinder;
+            cellZone        innerCylinder;
+            cellZoneInside  inside;
+        }
     }
 
     // Detecta ângulos de curvatura acentuados na superfície e aplica o nível superior (8)
@@ -86,10 +103,10 @@ castellatedMeshControls
 
     refinementRegions
     {
-        innerCylinder
+        mrfBufferCylinder
         {
             mode        inside;
-            level       4; // Refinamento hexaédrico uniforme nível 4 (~5.2 mm) em toda a região do cilindro MRF
+            level       4; // Buffer hexaédrico uniforme nível 4 (~5.2 mm) envolvendo R=0.545 com folga até R=0.58
         }
         refinementBox
         {
