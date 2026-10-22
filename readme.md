@@ -12,56 +12,58 @@ Este repositório contém os arquivos de configuração e scripts para a simula�
 - **Benchmark Experimental (Fabricante):**
   - Empuxo Estático ($T_{\text{target}}$): $\approx 348\text{ N}$ ($35,5\text{ kgf}$)
   - Torque no Eixo ($Q_{\text{target}}$): $\approx 17,8\text{ N}\cdot\text{m}$
-- **Solver & Turbulência:** `foamRun` (`incompressibleFluid` / SIMPLE), modelo RAS `kOmegaSST`, malha de $\approx 6,15$ milhões de células.
+- **Solver & Turbulência:** `foamRun` (`incompressibleFluid` / SIMPLE), modelo RAS `kOmegaSST` (`c1 = 1.0`, `nutUSpaldingWallFunction`), malha de $\approx 9,50$ milhões de células (`9.497.199` células).
 - **Framework MRF (`constant/MRFProperties`):**
-  - **Zona de Células e Faces (`cellZone` + `faceZone`):** `innerCylinder` ($Y \in [-0,14; +0,14]\text{ m}$, $R = 0,58\text{ m}$, gerada e conformada diretamente pelo `snappyHexMesh` em nível 4 via `searchableCylinder`, eliminando a borda em escada do `topoSet`).
+  - **Zona de Células e Faces (`cellZone` + `faceZone`):** `innerCylinder` ($Y \in [-0,10; +0,10]\text{ m}$, $R = 0,545\text{ m}$, gerada e conformada diretamente pelo `snappyHexMesh` em nível 4 dentro do cilindro de buffer uniforme `mrfBufferCylinder` de $R = 0,58\text{ m}$, eliminando a borda em escada do `topoSet` e os *hanging nodes* na interface).
   - **Eixo de Rotação (`axis`):** `(0 1 0)` | **Origem (`origin`):** `(0 -0.00800165 0)`.
-  - **Condição na Pá (`propellerTip`):** `MRFnoSlip` em `0/U` e `fixedFluxPressure` em `0/p`.
+  - **Condição na Pá (`propellerTip`):** `MRFnoSlip` em `0/U`, `fixedFluxPressure` em `0/p` e `nutUSpaldingWallFunction` em `0/nut`.
 
 ---
 
 ## 2. Validação Física e Diagnóstico do Regime de Hover ($J \approx 0$)
 
-### A. Validação na Janela Axial (`40 <= t <= 111`)
-Durante as iterações **40 a 111**, enquanto o escoamento axial limpo atravessa o disco do rotor:
-- **Empuxo atingido:** **$347,0\text{ N}$ a $374,4\text{ N}$** (precisão de **$99,7\%$** em `t = 111` frente ao valor experimental de bancada de $348\text{ N}$).
-- **Torque no eixo:** **$-13,9\text{ a }-15,6\text{ N}\cdot\text{m}$**.
-- **Padrão de escoamento:** Jato axial cilíndrico colimado com contração clássica de tubo de corrente (*vena contracta*) descendo livremente até o `outlet` no sentido $-Y$.
+### A. Convergência Estacionária Sustentada (`t = 1000`)
+- **Empuxo inicial (`75 <= t <= 175`):** **$347,0\text{ N}$ a $350,4\text{ N}$** (precisão de **$99,9\%$** frente ao benchmark de bancada de $348\text{ N}$).
+- **Empuxo estacionário convergido (`t = 1000`):** **$\approx 310\text{ N}$** (sustentado dentro da meta de $300\text{ a }340\text{ N}$ após o desenvolvimento completo do tubo de esteira e da velocidade axial induzida até o `outlet`).
+- **Torque viscoso estabilizado:** Cravado em **$-0,896\text{ N}\cdot\text{m}$**, sem crescimento espúrio de viscosidade turbulenta.
 
-### B. Causa Raiz da Degradação Tardia na Malha Antiga: Borda em Escada do `topoSet`
-Na malha anterior, a `cellZone innerCylinder` era criada após o `snappyHexMesh` usando `topoSet` (`cylinderToCell`) sobre uma malha cartesiana:
-- Como as faces dos cubos cartesianos apontam nas direções $\pm X$ e $\pm Z$ (em vez da direção radial $\hat{r}$), a parede lateral do cilindro MRF formava uma **escada serrilhada**.
-- Nessas faces em degrau, o fluxo de rotação do MRF $(\vec{\omega} \times \vec{r}_f) \cdot \vec{S}_f \neq 0$ (chegando a $\pm 190\text{ m/s} \times A_f$) injetava fontes/sorvedouros artificiais na equação de pressão, gerando dois jatos radiais espúrios a $90^\circ$ nas pontas que drenavam o empuxo ao longo de 1000 iterações.
+### B. Os Três Problemas Corrigidos em Relação à Configuração Original
+1. **Bloqueio de Saída (`freestreamPressure` $\to$ `totalPressure` + `inletOutlet`):**
+   Substituídas as condições de contorno externas por `totalPressure` (`p0 = 0`) em `0/p` e `inletOutlet` em `0/U`, permitindo que a esteira axial com contração de *vena contracta* saia livremente pelo `outlet`.
+2. **Superprodução de Viscosidade Turbulenta $\nu_t$ nas Linhas de Corrente Fechadas do MRF:**
+   - No modelo `kOmegaSST` padrão (`c1 = 10.0` + `nutkWallFunction` + $\omega_\infty = 10\text{ s}^{-1}$), a energia cinética turbulenta $k$ crescia exponencialmente ao orbitar na zona MRF, inflando uma bola de alta viscosidade turbulenta ($\nu_t \sim 10^4 \nu$) na ponta da pá que estolava a metade externa da hélice e dobrava o torque viscoso.
+   - Com `c1 = 1.0` em `constant/turbulenceProperties`, `nutUSpaldingWallFunction` em `0/nut`, $k = 0,0015$ e $\omega = 360\text{ s}^{-1}$, a camada limite permanece fina e aderida à pá.
+3. **Degraus Cartesianos do `topoSet` na Interface MRF:**
+   - A seleção de cubos cartesianos via `topoSet` (`cylinderToCell`) gerava faces laterais em degrau ($\pm X, \pm Z$) onde $(\vec{\omega} \times \vec{r}_f) \cdot \vec{S}_f \neq 0$, injetando jatos radiais espúrios a $90^\circ$.
+   - Desacoplando o cilindro de refinamento volumétrico `mrfBufferCylinder` ($R = 0,58\text{ m}, Y \in [-0,14; +0,14]\text{ m}$, `level 4`) da superfície conformada `innerCylinder` ($R = 0,545\text{ m}, Y \in [-0,10; +0,10]\text{ m}$, `level (4 4)`), o `snappyHexMesh` realiza o *snap* da interface MRF dentro de uma malha `level 4` uniforme (sem mudança de nível `4 -> 3` na parede do cilindro), garantindo $(\vec{\omega} \times \vec{r}_f) \cdot \vec{S}_f = 0$ e `Face tets OK` / `Cell determinant OK` no `checkMesh -allGeometry -allTopology`.
 
 ---
 
-## 3. Configuração com Interface MRF Cilíndrica Conformada (~8,8 Milhões de Células)
+## 3. Resumo da Malha e Configuração Numérica (~9,5 Milhões de Células)
 
-1. **Interface MRF Cilíndrica Lisa no `snappyHexMeshDict` (Sem `topoSet`):**
-   - O cilindro `innerCylinder` é definido como um cilindro analítico (`searchableCylinder`, $R = 0,58\text{ m}, Y \in [-0,14; +0,14]\text{ m}$) dentro de **`refinementSurfaces`** com `faceZone innerCylinder`, `cellZone innerCylinder` e `cellZoneInside inside` no **nível 4** ($\Delta x \approx 5,2\text{ mm}$).
-   - Durante a etapa de `snap`, o `snappyHexMesh` projeta os vértices da interface exatamente sobre a superfície cilíndrica, garantindo que $(\vec{\omega} \times \vec{r}_f) \cdot \vec{S}_f = 0$ em toda a lateral do cilindro MRF.
-2. **Refinamento Gradual da Malha e da Esteira ($\approx 8,5\text{ a }9,0$ Milhões de Células):**
-   - **`blockMeshDict`:** Malha de fundo com cubos exatos de $83,33\text{ mm}$ (`120 x 180 x 120` $= 2,592\text{M}$ células).
-   - **`innerCylinder` (Nível 4, $\approx 5,2\text{ mm}$):** Alta resolução em todo o disco rotativo e na interface cilíndrica.
-   - **`refinementBox` (Nível 3, $\approx 10,4\text{ mm}$):** Transição suave ao redor do cilindro MRF.
-   - **`wakeCylinder` (Nível 2, $\approx 20,8\text{ mm}$):** Cilindro de refinamento na esteira ($R = 0,65\text{ m}, Y \in [-2,50; -0,14]\text{ m}$) para capturar a contração do tubo de jato (*vena contracta*).
-3. **Condições de Contorno Abertas (`0/U` e `0/p`):**
-   - **`0/p` (`inlet`, `outlet`, `walls`):** `totalPressure` (`p0 uniform 0`).
-   - **`0/U` (`outlet` e `walls`):** `inletOutlet` com `inletValue uniform (0 0 0)`.
-   - **`0/U` (`inlet` e `internalField`):** `inletOutlet` com `inletValue uniform (0 -1 0)`.
+1. **Hierarquia de Refinamento (`system/snappyHexMeshDict`):**
+   - **`blockMeshDict`:** Cubos de $83,33\text{ mm}$ (`120 x 180 x 120` $= 2,592\text{M}$ células).
+   - **`propellerTip` (Níveis 7–8 + 5 camadas de prisma):** Resolução de $\approx 0,32\text{ mm}$ na superfície da pá, com `implicitFeatureSnap false`, `explicitFeatureSnap true`, `nSmoothPatch 3`, `minArea 1e-13` e `minTriangleTwist 0.01`.
+   - **`innerCylinder` ($R = 0,545\text{ m}$, Nível 4):** Interface MRF cilíndrica conformada (`faceZone` + `cellZone`).
+   - **`mrfBufferCylinder` ($R = 0,58\text{ m}$, Nível 4):** Buffer hexaédrico uniforme ao redor da interface MRF.
+   - **`refinementBox` (Nível 3, $\approx 10,4\text{ mm}$) e `wakeCylinder` (Nível 2, $\approx 20,8\text{ mm}$ até $Y = -2,5\text{ m}$):** Resolução da esteira helicoidal e *vena contracta*.
+2. **Estabilidade do Solver (`system/fvSolution` e `system/fvSchemes`):**
+   - Solver de pressão `GAMG` com `smoother GaussSeidel` e `maxIter 200`.
+   - Esquemas não-ortogonais limitados em `limited corrected 0.333`.
 
 ---
 
 ## 4. Fluxo de Execução
 
-1. **Gerar a Nova Malha Conformada (~8,8M células) e Rodar Completo (`Allrun`):**
+1. **Gerar a Malha Conformada (~9,5M células) e Rodar a Simulação (`Allrun`):**
    ```bash
    ./Allrun.pre
    ./Allrun.solver
    ```
    *(Ou simplesmente `./Allrun`)*
 
-2. **Pós-Processamento e Monitoramento:**
-   - Forças e momentos brutos: `postProcessing/forces/0/forces.dat`
-   - Coeficientes adimensionais: `postProcessing/forceCoeffs/0/forceCoeffs.dat`
-   - Visualização no ParaView: `results.foam` / `visualizar.foam`
+6. **Pós-Processamento e Monitoramento:**
+   - Visualização no ParaView: `results.foam`
+   - Dataset consolidado de forças (0 a 2.500 iterações): `forces_consolidated.csv`
+   - Gráfico de convergência: `forces_convergence.png`
+   - Gerar gráficos automaticamente: `python3 plot_forces.py`
