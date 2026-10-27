@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+touch results.foam
+
+rm -f log.decomposePar log.foamRun log.reconstructPar
+rm -rf processor* [1-9]* postProcessing
+restore0Dir
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+runApplication reconstructPar -latestTime
+
+#------------------------------------------------------------------------------

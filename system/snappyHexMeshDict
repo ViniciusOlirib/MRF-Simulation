@@ -1,0 +1,198 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                                                                |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012 / dev                        |
+|   \\  /    A nd           | Website:  www.openfoam.com                       |
+|    \\/     M anipulation  |                                                  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+geometry
+{
+    innerCylinder
+    {
+        type        searchableCylinder;
+        point1      (0 -0.10 0);
+        point2      (0  0.10 0);
+        radius      0.545;
+    }
+
+    mrfBufferCylinder
+    {
+        type        searchableCylinder;
+        point1      (0 -0.14 0);
+        point2      (0  0.14 0);
+        radius      0.58;
+    }
+
+    wakeCylinder
+    {
+        type        searchableCylinder;
+        point1      (0 -2.50 0);
+        point2      (0 -0.14 0);
+        radius      0.65;
+    }
+
+    propellerTip.obj
+    {
+        type        triSurfaceMesh;
+        file        "propellerTip.obj";
+        name        propellerTip;
+    }
+    
+    refinementBox
+    {
+        type        searchableBox;
+        min         (-0.65 -0.20 -0.65);
+        max         ( 0.65  0.20  0.65);
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 4000000;
+    maxGlobalCells 30000000; // Teto de segurança
+    minRefinementCells 0;
+    maxLoadUnbalance 0.10;
+
+    nCellsBetweenLevels 3; // Garante transição suave entre os níveis
+
+    features
+    (
+        {
+            file        "propellerTip.eMesh";
+            level       7; // Alinhado com o nível máximo da superfície
+        }
+    );
+
+    refinementSurfaces
+    {
+        propellerTip
+        {
+            // Permite que regiões de curvatura subam até o nível 8 para dar pontos suficientes ao snap
+            level       (7 8);
+            patchInfo
+            {
+                type    wall;
+            }
+        }
+
+        innerCylinder
+        {
+            // Snapped dentro de uma regiao hexaedrica uniforme nivel 4 (sem mudanca de nivel 4->3 na interface!)
+            level           (4 4);
+            faceZone        innerCylinder;
+            cellZone        innerCylinder;
+            cellZoneInside  inside;
+        }
+    }
+
+    // Detecta ângulos de curvatura acentuados na superfície e aplica o nível superior (8)
+    resolveFeatureAngle 25;
+
+    refinementRegions
+    {
+        mrfBufferCylinder
+        {
+            mode        inside;
+            level       4; // Buffer hexaédrico uniforme nível 4 (~5.2 mm) envolvendo R=0.545 com folga até R=0.58
+        }
+        refinementBox
+        {
+            mode        inside;
+            level       3; // Caixa de transição nível 3 (~10.4 mm) ao redor do cilindro MRF
+        }
+        wakeCylinder
+        {
+            mode        inside;
+            level       2; // Refinamento nível 2 (~20.8 mm) na esteira (vena contracta) até Y = -2.5 m
+        }
+    }
+
+    locationInMesh (1.5 1.0 1.0);
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch 3;             // Reduzido de 10 para 3: evita cruzar extradorso/intradorso no bordo de fuga fino
+    tolerance 1.0;              // Tolerancia padrao para evitar atrair nos distantes que invertem celulas
+    nSolveIter 300;
+    nRelaxIter 10;
+    
+    nFeatureSnapIter 15;
+    implicitFeatureSnap false;  // DESATIVADO: evita conflito com explicitFeatureSnap (.eMesh) no bordo de fuga
+    explicitFeatureSnap true;   // Usa exclusivamente as linhas extraidas pelo surfaceFeatures (.eMesh)
+    multiRegionFeatureSnap false;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+    layers
+    {
+        propellerTip
+        {
+            nSurfaceLayers 5;
+        }
+    }
+    expansionRatio 1.15;
+    finalLayerThickness 0.5;
+    minThickness 0.01; 
+    
+    nBufferCellsNoExtrude 2; // Proteção para a quina do bordo de fuga
+
+    nGrow 0;
+    featureAngle 60;
+    nRelaxIter 5;
+    
+    nSmoothSurfaceNormals 3;
+    nSmoothNormals 10;        
+    nSmoothThickness 10;
+    
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedialAxisAngle 90;
+    nLayerIter 50;
+}
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    
+    minVol 1e-16;
+    minArea 1e-13;              // Ativado (antes estava -1, ignorando faces de area zero)
+    minTetQuality 1e-30;
+    
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist 0.01;      // Ativado (antes estava -1, ignorando triangulos torcidos/invertidos)
+
+    nSmoothScale 4;
+    errorReduction 0.75;
+    
+    relaxed
+    {
+        maxNonOrtho 75;
+    }
+}
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //
