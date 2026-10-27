@@ -3,6 +3,10 @@ cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
 #------------------------------------------------------------------------------
 
+# Desativar probing grafico do hwloc e desligar DISPLAY
+export HWLOC_COMPONENTS="-gl"
+unset DISPLAY
+
 ./Allrun.pre
 
 touch results.foam

@@ -3,6 +3,10 @@ cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
 #------------------------------------------------------------------------------
 
+# Desativar probing grafico do hwloc (evita congelamento do OpenMPI / MIT-MAGIC-COOKIE) e desligar DISPLAY
+export HWLOC_COMPONENTS="-gl"
+unset DISPLAY
+
 # Limpar logs, diretorio 0 e malha antiga para garantir que o runApplication execute todas as etapas
 rm -f log.blockMesh log.surfaceFeatures log.surfaceFeatureExtract log.decomposePar log.snappyHexMesh log.reconstructParMesh log.reconstructPar log.renumberMesh log.topoSet
 rm -rf 0 constant/polyMesh processor*

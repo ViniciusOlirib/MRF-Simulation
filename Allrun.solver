@@ -3,6 +3,10 @@ cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
 #------------------------------------------------------------------------------
 
+# Desativar probing grafico do hwloc e desligar DISPLAY
+export HWLOC_COMPONENTS="-gl"
+unset DISPLAY
+
 echo "Limpando solucao anterior..."
 rm -f log.topoSet log.decomposePar log.foamRun log.simpleFoam log.reconstructPar
 rm -rf processor*
